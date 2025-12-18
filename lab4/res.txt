@@ -1,0 +1,7 @@
+
+=== Final results table ===
+                                                                                         Method      k              Instance 1              Instance 2
+Steepest local search using\ncandidate moves with\nRandom starting solution\nWith edge exchange k = 10 73 943 (71 641, 78 527) 48 275 (45 783, 51 931)
+                                                                                                 k = 5 74 482 (71 863, 78 638) 48 455 (45 412, 51 388)
+                                                                                                 k = 3 76 513 (72 187, 81 370) 48 993 (45 737, 52 762)
+                      Steepest local search with\nRandom starting solution\nWith edges exchange        73 878 (71 955, 78 255) 48 368 (45 543, 51 202)
