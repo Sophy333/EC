@@ -5,9 +5,6 @@ import pandas as pd
 import ec_ls
 
 
-# ------------------------------------------------------------
-# Instance reading
-# ------------------------------------------------------------
 def round_half_up(x: float) -> int:
     return int(math.floor(x + 0.5))
 
@@ -33,10 +30,6 @@ def read_instance_csv(path: str, sep=";"):
     dist = build_distance_matrix(coords)
     return coords, dist, costs
 
-
-# ------------------------------------------------------------
-# Formatting
-# ------------------------------------------------------------
 def summarize(objs):
     a = np.asarray(objs, dtype=int)
     return float(a.mean()), int(a.min()), int(a.max())
@@ -47,10 +40,6 @@ def fmt_av_min_max(objs):
     def s(x): return f"{x:,}".replace(",", " ")
     return f"{s(int(round(av)))} ({s(mn)} – {s(mx)})"
 
-
-# ------------------------------------------------------------
-# LS wrappers
-# ------------------------------------------------------------
 def run_ls_random(dist, costs, seed):
     tour, obj, _ = ec_ls.steepest_full(dist, costs, seed=int(seed))
     return np.asarray(tour, dtype=int), int(obj)
@@ -61,9 +50,6 @@ def run_ls_from_tour(dist, costs, tour):
     return np.asarray(tour2, dtype=int), int(obj)
 
 
-# ------------------------------------------------------------
-# Random tour + perturbation for ILS
-# ------------------------------------------------------------
 def random_tour(n, m, rng: np.random.Generator):
     tour = rng.permutation(n)[:m].astype(int).tolist()
     rng.shuffle(tour)
@@ -71,17 +57,7 @@ def random_tour(n, m, rng: np.random.Generator):
 
 
 def perturb_tour(tour, n, rng: np.random.Generator, strength=None):
-    """
-    ILS perturbation (good for report):
 
-    Perform 'strength' random steps. Each step is:
-      - with prob 0.5: inter-swap (replace one selected node by one random unselected node)
-      - with prob 0.5: segment reversal (2-opt-like reorder inside the tour)
-
-    This changes both:
-      - selected set
-      - node order in the cycle
-    """
     t = list(map(int, tour))
     m = len(t)
     sel = set(t)
@@ -117,9 +93,6 @@ def perturb_tour(tour, n, rng: np.random.Generator, strength=None):
     return t
 
 
-# ------------------------------------------------------------
-# MSLS
-# ------------------------------------------------------------
 def msls_one_run(dist, costs, msls_iters=200, seed=123):
     best_obj = None
     best_tour = None
@@ -155,9 +128,6 @@ def msls_experiment(dist, costs, runs=20, msls_iters=200, base_seed=1000):
     }
 
 
-# ------------------------------------------------------------
-# ILS
-# ------------------------------------------------------------
 def ils_one_run(dist, costs, time_limit_s, seed=777, strength=None):
     n = len(costs)
     m = (n + 1) // 2
@@ -177,7 +147,6 @@ def ils_one_run(dist, costs, time_limit_s, seed=777, strength=None):
         new_tour, new_obj = run_ls_from_tour(dist, costs, pert)
         ls_runs += 1
 
-        # accept the new local optimum (walk)
         cur_tour, cur_obj = new_tour, new_obj
 
         if new_obj < best_obj:
@@ -215,9 +184,6 @@ def ils_experiment(dist, costs, runs=20, time_limit_s=1.0, base_seed=2000, stren
     }
 
 
-# ------------------------------------------------------------
-# Tables
-# ------------------------------------------------------------
 def build_results_table(msls_A, msls_B, ils_A, ils_B):
     return pd.DataFrame([
         {
@@ -241,15 +207,10 @@ def build_ils_counts_table(ils_A, ils_B):
     }])
 
 
-# ------------------------------------------------------------
-# Main
-# ------------------------------------------------------------
 def main():
     RUNS = 20
     MSLS_ITERS = 200
 
-    # You can tune this if needed to beat MSLS more reliably:
-    # e.g. strength = 20 or strength = None (auto m//10)
     ILS_STRENGTH = None
 
     _, distA, costsA = read_instance_csv("TSPA.csv")
@@ -268,17 +229,14 @@ def main():
     ils_A = ils_experiment(distA, costsA, runs=RUNS, time_limit_s=time_limit_A, base_seed=5000, strength=ILS_STRENGTH)
     ils_B = ils_experiment(distB, costsB, runs=RUNS, time_limit_s=time_limit_B, base_seed=7000, strength=ILS_STRENGTH)
 
-    # ---- usual results table ----
     table = build_results_table(msls_A, msls_B, ils_A, ils_B)
     print("\n=== Results table (avg (min – max)) ===")
     print(table.to_string(index=False))
 
-    # ---- ILS run counts table ----
     counts = build_ils_counts_table(ils_A, ils_B)
     print("\n=== ILS: number of basic LS runs (avg (min – max)) ===")
     print(counts.to_string(index=False))
 
-    # ---- best solutions (node lists) ----
     print("\n=== Best solutions (node lists) ===")
     print("MSLS best Instance 1:", msls_A["best_obj"])
     print(msls_A["best_tour"].tolist())
