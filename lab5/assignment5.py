@@ -5,9 +5,6 @@ import pandas as pd
 import ec_ls
 
 
-# -------------------------
-# Reader (same as before)
-# -------------------------
 def round_half_up(x: float) -> int:
     return int(math.floor(x + 0.5))
 
@@ -32,9 +29,6 @@ def read_instance_csv(path: str, sep=";"):
     return dist, costs
 
 
-# -------------------------
-# Formatting
-# -------------------------
 def summarize(objs):
     arr = np.asarray(objs, dtype=int)
     return float(arr.mean()), int(arr.min()), int(arr.max())
@@ -45,9 +39,6 @@ def fmt_av_min_max(objs):
     return f"{s(int(round(av)))} ({s(mn)}, {s(mx)})"
 
 
-# -------------------------
-# Run methods (200 runs)
-# -------------------------
 def run_method(method_fn, dist, costs, reps=200, base_seed=123):
     objs = []
     t0 = time.time()
@@ -57,10 +48,6 @@ def run_method(method_fn, dist, costs, reps=200, base_seed=123):
         objs.append(int(obj))
     return objs, time.time() - t0
 
-
-# -------------------------
-# Build table like screenshot
-# -------------------------
 def build_table(distA, costsA, distB, costsB, reps=200, base_seed=123):
     def run_method(method_fn, dist, costs):
         objs = []
@@ -72,7 +59,6 @@ def build_table(distA, costsA, distB, costsB, reps=200, base_seed=123):
 
     rows = []
 
-    # ONLY LM row (no baseline, no time)
     objsA = run_method(ec_ls.steepest_lm, distA, costsA)
     objsB = run_method(ec_ls.steepest_lm, distB, costsB)
 
@@ -83,32 +69,6 @@ def build_table(distA, costsA, distB, costsB, reps=200, base_seed=123):
     })
 
     return pd.DataFrame(rows)
-
-    # rows = []
-
-    # # baseline
-    # objsA, tA = run_method(ec_ls.steepest_full, distA, costsA, reps=reps, base_seed=base_seed)
-    # objsB, tB = run_method(ec_ls.steepest_full, distB, costsB, reps=reps, base_seed=base_seed)
-
-    # rows.append({
-    #     "Method": "Steepest local search\nRandom starting solution\nWith move evaluations (deltas)",
-    #     "Instance 1": fmt_av_min_max(objsA),
-    #     "Instance 2": fmt_av_min_max(objsB),
-    #     **({"Time I1 (s)": round(tA,3), "Time I2 (s)": round(tB,3)} if include_time else {})
-    # })
-
-    # # LM
-    # objsA, tA = run_method(ec_ls.steepest_lm, distA, costsA, reps=reps, base_seed=base_seed)
-    # objsB, tB = run_method(ec_ls.steepest_lm, distB, costsB, reps=reps, base_seed=base_seed)
-
-    # rows.append({
-    #     "Method": "Steepest local search using\nmove evaluations (deltas) from previous iterations\n(list of improving moves)\nRandom starting solution",
-    #     "Instance 1": fmt_av_min_max(objsA),
-    #     "Instance 2": fmt_av_min_max(objsB),
-    #     **({"Time I1 (s)": round(tA,3), "Time I2 (s)": round(tB,3)} if include_time else {})
-    # })
-
-    # return pd.DataFrame(rows)
 
 
 def main():
