@@ -1,0 +1,6 @@
+=== Reference summary table (avg (min – max)) ===
+                                                               Method               Instance 1               Instance 2
+                         Random starting solution\nWith node exchange 86993.00 (78830 – 98020) 61935.97 (54895 – 75231)
+                        Random starting solution\nWith edges exchange 73613.74 (71024 – 78255) 48289.07 (45543 – 51202)
+ Greedy cycle weighted 2-regret starting solution\nWith node exchange 74406.22 (71987 – 83001) 48634.76 (45754 – 51399)
+Greedy cycle weighted 2-regret starting solution\nWith edges exchange 73355.92 (70935 – 81855) 47986.04 (45738 – 51223)
