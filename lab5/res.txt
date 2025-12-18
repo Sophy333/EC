@@ -1,0 +1,4 @@
+=== Results table ===
+                                                                             Method          
+    Instance 1              Instance 2
+Steepest local search using\nlist of improving moves (LM)\nRandom starting solution 74 150 (71 514, 78 319) 48 704 (45 564, 51 690)
