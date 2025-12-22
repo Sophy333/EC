@@ -1,0 +1,7 @@
+
+=== Construction heuristics table (avg (min – max)) ===
+                                    Method                  Instance 1                  Instance 2
+                           Random solution 264 402 (232 443 – 289 352) 214 419 (193 041 – 237 802)
+             Nearest neighbor (add at end)    85 109 (83 182 – 89 433)    54 390 (52 319 – 59 030)
+Nearest neighbor (insert anywhere in path)    73 180 (71 179 – 75 450)    45 870 (44 417 – 53 438)
+         Greedy cycle (cheapest insertion)    72 636 (71 488 – 74 410)    51 401 (49 001 – 57 324)
