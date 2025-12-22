@@ -1,0 +1,4 @@
+=== Regret heuristics table (avg (min – max)) ===
+                                    Method                  Instance 1               Instance 2
+                           Greedy 2-regret 115 469 (107 434 – 123 428) 72 530 (66 505 – 77 254)
+Weighted (2-regret + bestΔ) wR=1.0, wB=1.0    72 136 (71 108 – 73 395) 50 928 (47 144 – 55 700)
