@@ -1,23 +1,9 @@
-# assignment9_run_with_cpp_hea.py
-# Full runner: MSLS / ILS / LNS / HEA(Op1) / HEA(Op2 w LS) / HEA(Op2 NO LS)
-# Uses C++ pybind11 module: ec_ls
-#
-# Expected C++ exports:
-#   ec_ls.steepest_full(dist, costs, seed) -> (tour[int32], obj[int64], dummy)
-#   ec_ls.steepest_from_tour(dist, costs, tour[int32]) -> (tour[int32], obj[int64], dummy)
-#   ec_ls.hea_run(dist, costs, time_limit_s, seed, recomb_type, p_ls, tourn_size, pop_size)
-#        -> (tour[int32], obj[int64], iterations[int])
-
 import math
 import time
 import numpy as np
 import pandas as pd
 import ec_ls
 
-
-# ============================================================
-# Instance reading (coords only used to build dist)
-# ============================================================
 def round_half_up(x: float) -> int:
     return int(math.floor(x + 0.5))
 
@@ -43,10 +29,6 @@ def read_instance_csv(path: str, sep=";"):
     dist = build_distance_matrix(coords)
     return coords, dist, costs
 
-
-# ============================================================
-# Formatting
-# ============================================================
 def summarize(vals):
     a = np.asarray(vals, dtype=int)
     return float(a.mean()), int(a.min()), int(a.max())
@@ -60,10 +42,6 @@ def fmt_av_min_max(vals):
 
     return f"{s(int(round(av)))} ({s(mn)} – {s(mx)})"
 
-
-# ============================================================
-# Local search wrappers (C++ backend)
-# ============================================================
 def ls_random(dist, costs, seed):
     tour, obj, _ = ec_ls.steepest_full(dist, costs, int(seed))
     return np.asarray(tour, dtype=int), int(obj)
@@ -73,19 +51,12 @@ def ls_from_tour(dist, costs, tour):
     tour2, obj, _ = ec_ls.steepest_from_tour(dist, costs, np.asarray(tour, dtype=np.int32))
     return np.asarray(tour2, dtype=int), int(obj)
 
-
-# ============================================================
-# Basic helpers
-# ============================================================
 def random_tour(n, m, rng: np.random.Generator):
     t = rng.permutation(n)[:m].astype(int).tolist()
     rng.shuffle(t)
     return t
 
 
-# ============================================================
-# MSLS
-# ============================================================
 def msls_one_run(dist, costs, msls_iters=200, seed=123):
     best_obj = None
     best_tour = None
@@ -115,10 +86,6 @@ def msls_experiment(dist, costs, runs=20, msls_iters=200, base_seed=1000):
         "best_tour": best_tour,
     }
 
-
-# ============================================================
-# ILS (Python loop, C++ LS)
-# ============================================================
 def perturb_tour(tour, n, rng: np.random.Generator, strength=None):
     t = list(map(int, tour))
     m = len(t)
@@ -144,7 +111,6 @@ def perturb_tour(tour, n, rng: np.random.Generator, strength=None):
             if j - i >= 2:
                 t[i : j + 1] = reversed(t[i : j + 1])
 
-    # ensure uniqueness / size
     if len(set(t)) != m:
         t = list(dict.fromkeys(t))
         while len(t) < m:
@@ -189,9 +155,6 @@ def ils_experiment(dist, costs, runs=20, time_limit_s=1.0, base_seed=2000):
     return {"objs": objs, "counts": counts, "best_obj": int(best_obj), "best_tour": best_tour}
 
 
-# ============================================================
-# LNS (Python loop, repair in python, LS in C++)
-# ============================================================
 def objective_cycle(dist, costs, tour):
     t = np.asarray(tour, dtype=int)
     m = len(t)
@@ -317,9 +280,6 @@ def lns_experiment(dist, costs, runs=20, time_limit_s=1.0, base_seed=5000, use_l
     return {"objs": objs, "best_obj": int(best_obj), "best_tour": best_tour}
 
 
-# ============================================================
-# HEA (C++): call ec_ls.hea_run
-# ============================================================
 def hea_cpp_experiment(
     dist,
     costs,
@@ -352,10 +312,6 @@ def hea_cpp_experiment(
             best_obj, best_tour = obj, tour
     return {"objs": objs, "iters": iters_list, "best_obj": int(best_obj), "best_tour": best_tour}
 
-
-# ============================================================
-# Run per instance, build table
-# ============================================================
 def run_all_methods_for_instance(dist, costs, base_seed):
     RUNS = 20
     MSLS_ITERS = 200
@@ -366,19 +322,19 @@ def run_all_methods_for_instance(dist, costs, base_seed):
     ils = ils_experiment(dist, costs, runs=RUNS, time_limit_s=tl, base_seed=base_seed + 2000)
     lns = lns_experiment(dist, costs, runs=RUNS, time_limit_s=tl, base_seed=base_seed + 5000, use_ls_after_repair=True)
 
-    # HEA Op1 in C++
+    # HEA Op1 
     hea_op1 = hea_cpp_experiment(
         dist, costs, runs=RUNS, time_limit_s=tl, base_seed=base_seed + 9000,
         recomb_type=1, p_ls=0.6, tourn_size=5, pop_size=20
     )
 
-    # HEA Op2 in C++ (WITH LS on offspring)
+    # HEA Op2 
     hea_op2 = hea_cpp_experiment(
         dist, costs, runs=RUNS, time_limit_s=tl, base_seed=base_seed + 13000,
         recomb_type=2, p_ls=0.8, tourn_size=5, pop_size=20
     )
 
-    # HEA Op2 in C++ (NO LS on offspring) -> p_ls = 0.0
+    # HEA Op2 
     hea_op2_no_ls = hea_cpp_experiment(
         dist, costs, runs=RUNS, time_limit_s=tl, base_seed=base_seed + 17000,
         recomb_type=2, p_ls=0.0, tourn_size=5, pop_size=20
@@ -431,9 +387,6 @@ def build_results_table(resA, resB):
     return pd.DataFrame(rows)
 
 
-# ============================================================
-# MAIN
-# ============================================================
 def main():
     _, distA, costsA = read_instance_csv("TSPA.csv")
     _, distB, costsB = read_instance_csv("TSPB.csv")
