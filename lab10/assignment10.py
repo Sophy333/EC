@@ -4,10 +4,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import ec_amoms
 
-
-# -------------------------
-# Instance reading
-# -------------------------
 def round_half_up(x: float) -> int:
     return int(math.floor(x + 0.5))
 
@@ -32,9 +28,6 @@ def read_instance_csv_with_coords(path: str, sep=";"):
     return coords, dist, costs
 
 
-# -------------------------
-# Objective (for sanity / plot titles)
-# -------------------------
 def calc_cycle_length(dist: np.ndarray, tour) -> int:
     t = np.asarray(tour, dtype=int)
     m = len(t)
@@ -45,9 +38,6 @@ def calc_obj(dist: np.ndarray, costs: np.ndarray, tour) -> int:
     return calc_cycle_length(dist, t) + int(costs[t].sum())
 
 
-# -------------------------
-# Formatting
-# -------------------------
 def fmt_av_min_max(vals):
     a = np.asarray(vals, dtype=np.int64)
     av = int(round(a.mean()))
@@ -56,10 +46,6 @@ def fmt_av_min_max(vals):
     s = lambda x: f"{x:,}".replace(",", " ")
     return f"{s(av)} ({s(mn)} – {s(mx)})"
 
-
-# -------------------------
-# Plotting
-# -------------------------
 def plot_solution(coords: np.ndarray, tour, title="Solution"):
     coords = np.asarray(coords)
     tour = np.asarray(tour, dtype=int)
@@ -83,9 +69,6 @@ def plot_solution(coords: np.ndarray, tour, title="Solution"):
     plt.show()
 
 
-# -------------------------
-# Experiments
-# -------------------------
 def run_amoms_20(dist, costs, time_limit_s, base_seed=1000, use_recomb=True):
     objs = []
     best_obj = None
@@ -118,7 +101,6 @@ def main():
     for name, path, seed in instances:
         coords, dist, costs = read_instance_csv_with_coords(path)
 
-        # Baseline timing: MSLS average time (20 runs, 200 LS runs each)
         avg_time, times, bests = ec_amoms.msls_avg_time(dist, costs, runs=20, ls_runs=200, seed=seed)
 
         print(f"\n{name}: avg MSLS time = {avg_time:.3f}s")
@@ -139,7 +121,6 @@ def main():
             "best_stats": best_stats,
         }
 
-    # ---- Report table ----
     table = pd.DataFrame({
         "Method": ["AMOMS (final improved method)"],
         "Instance 1": [fmt_av_min_max(results["Instance 1"]["objs"])],
@@ -149,14 +130,12 @@ def main():
     print("\n=== Final results table (avg (min – max)) ===")
     print(table.to_string(index=False))
 
-    # ---- Best tours as node lists ----
     for inst_name in ["Instance 1", "Instance 2"]:
         best_tour = results[inst_name]["best_tour"]
         best_obj  = results[inst_name]["best_obj"]
         dist = results[inst_name]["dist"]
         costs = results[inst_name]["costs"]
 
-        # sanity check
         recomputed = calc_obj(dist, costs, best_tour)
         print(f"\n{inst_name} best obj reported: {best_obj}, recomputed: {recomputed}")
         print(f"{inst_name} best tour nodes:")
